@@ -13,12 +13,22 @@
   "license": "ISC",
   "author": "elizavetachizh",
   "type": "module",
-  "main": "src/main.js",
+  "main": "src/server.ts",
   "scripts": {
+    "dev": "cross-env NODE_ENV=development nodemon --watch src --ext ts --exec \"node --loader ts-node/esm src/server.ts\"",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/main.js"
+    "start": "cross-env NODE_ENV=production node --loader ts-node/esm src/server.ts"
   },
   "dependencies": {
-    "fastify": "^5.8.2"
+    "dotenv": "^17.3.1",
+    "fastify": "^5.8.2",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "cross-env": "^10.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }
