@@ -1,0 +1,24 @@
+{
+  "name": "nodejs-crud-api",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/elizavetachizh/nodejs-CRUD-API#readme",
+  "bugs": {
+    "url": "https://github.com/elizavetachizh/nodejs-CRUD-API/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elizavetachizh/nodejs-CRUD-API.git"
+  },
+  "license": "ISC",
+  "author": "elizavetachizh",
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/main.js"
+  },
+  "dependencies": {
+    "fastify": "^5.8.2"
+  }
+}
