@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsync } from "fastify";
 
 type Product = {
   id: string;
@@ -33,6 +33,15 @@ const createProductBodySchema = {
   },
 } as const;
 
+const productIdParamSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["productId"],
+  properties: {
+    productId: { type: "string", format: "uuid" },
+  },
+} as const;
+
 export const productRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get("/", async () => {
     return products;
@@ -56,8 +65,10 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
     },
   );
 
-  fastify.get("/:productId", async (request, reply) => {
-      const { productId } = request.params as { productId: string };
+  fastify.get<{ Params: { productId: string } }>("/:productId", 
+    { schema: { params: productIdParamSchema } },
+    async (request, reply) => {
+      const productId  = request.params.productId;
       const product = products.find((p) => p.id === productId);
       if (!product) {
         return reply.code(404).send({ message: "Product not found" });
@@ -65,8 +76,11 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
       return product;
     },
   );
-  fastify.put<{ Body: CreateProductBody }>("/:productId", { schema: { body: createProductBodySchema } }, async (request, reply) => {
-    const { productId } = request.params as { productId: string };
+  fastify.put<{ Params: { productId: string }, Body: CreateProductBody }>(
+    "/:productId", 
+    { schema: { params: productIdParamSchema, body: createProductBodySchema } },
+      async (request, reply) => {
+    const  productId  = request.params.productId;
     const product = products.find((p) => p.id === productId);
 
     if (!product) {
@@ -81,8 +95,10 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
 
     return reply.code(200).send(product);
   });
-  fastify.delete("/:productId", async (request, reply) => {
-    const { productId } = request.params as { productId: string };
+  fastify.delete<{Params: {productId: string}}>("/:productId", 
+    { schema: { params: productIdParamSchema } },
+    async (request, reply) => {
+    const  productId  = request.params.productId;
     const product = products.find((p) => p.id === productId);
     if (!product) {
       return reply.code(404).send({ message: "Product not found" });

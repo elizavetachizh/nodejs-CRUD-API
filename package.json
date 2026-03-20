@@ -15,9 +15,13 @@
   "type": "module",
   "main": "src/server.ts",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development nodemon --watch src --ext ts --exec \"node --loader ts-node/esm src/server.ts\"",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cross-env NODE_ENV=production node --loader ts-node/esm src/server.ts"
+    "start:dev": "cross-env NODE_ENV=development nodemon --watch src --ext ts --exec \"node --loader ts-node/esm src/server.ts\"",
+    "start:prod": "npm run build && node dist/server.js",
+    "start:multi": "npm run build && node src/multi.js",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "dev": "npm run start:dev",
+    "start": "npm run start:prod",
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "dotenv": "^17.3.1",
