@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildApp } from "../src/app.ts";
+import { buildApp } from "../src/app.js";
 
 test("GET / returns API running message", async () => {
   const app = buildApp();

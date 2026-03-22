@@ -10,7 +10,7 @@ import type {
   ProductsStore,
 } from "./stores/products.js";
 
-const basePort = Number(process.env.PORT ?? 4000);
+const basePort = Number(process.env.PORT ?? 3000);
 const workersCount = Math.max(1, availableParallelism() - 1);
 const workerPorts = Array.from(
   { length: workersCount },
