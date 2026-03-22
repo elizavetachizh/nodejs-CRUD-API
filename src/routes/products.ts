@@ -1,24 +1,9 @@
-import { randomUUID } from "node:crypto";
 import type { FastifyPluginAsync } from "fastify";
-
-type Product = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  inStock: boolean;
-};
-
-type CreateProductBody = {
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  inStock: boolean;
-};
-
-const products: Product[] = [];
+import {
+  createInMemoryProductsStore,
+  type CreateProductBody,
+  type ProductsStore,
+} from "../stores/products.js";
 
 const createProductBodySchema = {
   type: "object",
@@ -42,68 +27,67 @@ const productIdParamSchema = {
   },
 } as const;
 
-export const productRoutes: FastifyPluginAsync = async (fastify) => {
+const productsStore = createInMemoryProductsStore();
+
+type ProductRoutesOptions = {
+  store?: ProductsStore;
+};
+
+export const productRoutes: FastifyPluginAsync<ProductRoutesOptions> = async (
+  fastify,
+  opts,
+) => {
+  const store = opts.store ?? productsStore;
+
   fastify.get("/", async () => {
-    return products;
+    return store.getAllProducts();
   });
 
   fastify.post<{ Body: CreateProductBody }>(
     "/",
     { schema: { body: createProductBodySchema } },
     async (request, reply) => {
-    const newProduct: Product = {
-      id: randomUUID(),
-      name: request.body.name,
-      description: request.body.description,
-      price: request.body.price,
-      category: request.body.category,
-      inStock: request.body.inStock,
-    };
-
-    products.push(newProduct);
-    return reply.code(201).send(newProduct);
+      const createdProduct = await store.createProduct(request.body);
+      return reply.code(201).send(createdProduct);
     },
   );
 
-  fastify.get<{ Params: { productId: string } }>("/:productId", 
+  fastify.get<{ Params: { productId: string } }>(
+    "/:productId",
     { schema: { params: productIdParamSchema } },
     async (request, reply) => {
-      const productId  = request.params.productId;
-      const product = products.find((p) => p.id === productId);
+      const product = await store.getProductById(request.params.productId);
       if (!product) {
         return reply.code(404).send({ message: "Product not found" });
       }
-      return product;
+      return reply.code(200).send(product);
     },
   );
-  fastify.put<{ Params: { productId: string }, Body: CreateProductBody }>(
-    "/:productId", 
+
+  fastify.put<{ Params: { productId: string }; Body: CreateProductBody }>(
+    "/:productId",
     { schema: { params: productIdParamSchema, body: createProductBodySchema } },
-      async (request, reply) => {
-    const  productId  = request.params.productId;
-    const product = products.find((p) => p.id === productId);
-
-    if (!product) {
-      return reply.code(404).send({ message: "Product not found" });
+    async (request, reply) => {
+      const updatedProduct = await store.updateProduct(
+        request.params.productId,
+        request.body,
+      );
+      if (!updatedProduct) {
+        return reply.code(404).send({ message: "Product not found" });
       }
+      return reply.code(200).send(updatedProduct);
+    },
+  );
 
-    product.name = request.body.name;
-    product.description = request.body.description;
-    product.price = request.body.price;
-    product.category = request.body.category;
-    product.inStock = request.body.inStock;
-
-    return reply.code(200).send(product);
-  });
-  fastify.delete<{Params: {productId: string}}>("/:productId", 
+  fastify.delete<{ Params: { productId: string } }>(
+    "/:productId",
     { schema: { params: productIdParamSchema } },
     async (request, reply) => {
-    const  productId  = request.params.productId;
-    const product = products.find((p) => p.id === productId);
-    if (!product) {
-      return reply.code(404).send({ message: "Product not found" });
-    }
-    products.splice(products.indexOf(product), 1);
-    return reply.code(204).send();
-  });
+      const deleted = await store.deleteProduct(request.params.productId);
+      if (!deleted) {
+        return reply.code(404).send({ message: "Product not found" });
+      }
+      return reply.code(204).send();
+    },
+  );
 };

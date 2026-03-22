@@ -1,7 +1,12 @@
 import Fastify, { type FastifyError, type FastifyInstance } from "fastify";
 import { productRoutes } from "./routes/products.js";
+import type { ProductsStore } from "./stores/products.js";
 
-export function buildApp(): FastifyInstance {
+type BuildAppOptions = {
+  store?: ProductsStore;
+};
+
+export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   // Create a Fastify instance
   const app = Fastify({
     // Enable logging
@@ -14,7 +19,10 @@ export function buildApp(): FastifyInstance {
   });
 
   // Register product routes as a plugin
-  app.register(productRoutes, { prefix: "/api/products" });
+  app.register(productRoutes, {
+    prefix: "/api/products",
+    store: options.store,
+  });
 
   app.get("/", async () => {
     return { message: "API is running" };
